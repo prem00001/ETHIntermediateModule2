@@ -1,4 +1,4 @@
-# Digital Decentralized Banking Service
+# Digital Decentralized Currency Exchange
 
 This project implements a decentralized banking service using Ethereum blockchain technology. It allows users to connect their MetaMask wallet, check their account balance, deposit and withdraw Ether (ETH) from a smart contract deployed on the Ethereum network.
 
@@ -7,6 +7,7 @@ This project implements a decentralized banking service using Ethereum blockchai
 - **Connect Wallet**: Users can connect their MetaMask wallet to interact with the banking service.
 - **Check Balance**: View the account balance in Ether (ETH).
 - **Deposit and Withdraw**: Deposit or withdraw ETH from the connected wallet to the smart contract.
+- **Verify Human**: Enter any two-digit number to verify you're not a robot before proceeding with deposit or withdrawal.
 - **User Interface**: Simple and intuitive UI built using React.js.
 
 ## Technologies Used
@@ -44,6 +45,10 @@ This project implements a decentralized banking service using Ethereum blockchai
 
 - **React**: Front-end framework for building the user interface.
 - **ethers.js**: JavaScript library for interacting with Ethereum nodes and smart contracts.
+- **MetaMask**: Browser extension for Ethereum wallet management.
+
+## License
+This project is licensed under the MIT License. See LICENSE file for more details.
 
 ## Repository Reference
 
