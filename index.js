@@ -8,6 +8,10 @@ export default function HomePage() {
   const [atm, setATM] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
   const [amount, setAmount] = useState(0);
+  const [action, setAction] = useState(undefined);
+  const [verificationInput, setVerificationInput] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
 
   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const atmABI = atm_abi.abi;
@@ -18,15 +22,15 @@ export default function HomePage() {
     }
 
     if (ethWallet) {
-      const account = await ethWallet.request({ method: "eth_accounts" });
-      handleAccount(account);
+      const accounts = await ethWallet.request({ method: "eth_accounts" });
+      handleAccount(accounts);
     }
   };
 
-  const handleAccount = (account) => {
-    if (account.length > 0) {
-      console.log("Account connected: ", account);
-      setAccount(account[0]);
+  const handleAccount = (accounts) => {
+    if (accounts.length > 0) {
+      console.log("Account connected: ", accounts);
+      setAccount(accounts[0]);
     } else {
       console.log("No account found");
     }
@@ -41,7 +45,6 @@ export default function HomePage() {
     const accounts = await ethWallet.request({ method: "eth_requestAccounts" });
     handleAccount(accounts);
 
-    // once wallet is set we can get a reference to our deployed contract
     getATMContract();
   };
 
@@ -78,6 +81,14 @@ export default function HomePage() {
     }
   };
 
+  const depositTwoEth = async () => {
+    if (atm) {
+      const tx = await atm.deposit(ethers.utils.parseEther("2.0"));
+      await tx.wait();
+      getBalance();
+    }
+  };
+
   const withdraw = async () => {
     if (atm && amount > 0) {
       const tx = await atm.withdraw(ethers.utils.parseEther(amount.toString()));
@@ -94,15 +105,35 @@ export default function HomePage() {
     }
   };
 
+  const withdrawTwoEth = async () => {
+    if (atm) {
+      const tx = await atm.withdraw(ethers.utils.parseEther("2.0"));
+      await tx.wait();
+      getBalance();
+    }
+  };
+
+  const verifyHuman = () => {
+    const inputNum = parseInt(verificationInput);
+    if (!isNaN(inputNum) && inputNum >= 10 && inputNum <= 99) {
+      setVerificationError('');
+      setIsVerified(true);
+    } else {
+      setVerificationError('Verification failed. Please enter a number between 10 and 99.');
+    }
+  };
+
   const initUser = () => {
-    // Check to see if user has Metamask
     if (!ethWallet) {
-      return <p>Please install Metamask in order to use this ATM.</p>;
+      return <p>Install Metamask to use this ATM.</p>;
     }
 
-    // Check to see if user is connected. If not, connect to their account
     if (!account) {
-      return <button onClick={connectAccount}>Please connect your Metamask wallet</button>;
+      return (
+        <div className="account-connection">
+          <button onClick={connectAccount}>Connect your Metamask wallet</button>
+        </div>
+      );
     }
 
     if (balance === undefined) {
@@ -111,19 +142,60 @@ export default function HomePage() {
 
     return (
       <div>
-        <p>Your Account Address : {account}</p>
-        <p>Your Account Balance : {balance} ETH</p>
-        <button onClick={depositOneEth}>Deposit 1 ETH</button>
-        <button onClick={withdrawOneEth}>Withdraw 1 ETH</button><br /><br />
-
-        <input
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(parseFloat(e.target.value))}
-          placeholder="Enter amount in ETH"
-        />
-        <button onClick={deposit}>Deposit</button>
-        <button onClick={withdraw}>Withdraw</button>
+        <p><strong>Your Account Address: </strong>{account}</p>
+        <p><strong>Your Account Balance: </strong>{balance} ETH</p>
+        {!isVerified ? (
+          <div className="verification-container">
+            <label htmlFor="verificationInput"><strong>Verify you are not a robot: </strong></label>
+            <input
+              type="number"
+              id="verificationInput"
+              value={verificationInput}
+              onChange={(e) => setVerificationInput(e.target.value)}
+              placeholder="Enter any two digit's number"
+              min="10"
+              max="99"
+              step="1"
+              className="verification-input"
+            />
+            <button className="btn" onClick={verifyHuman}>Verify</button>
+            {verificationError && <p style={{ color: 'red' }}>{verificationError}</p>}
+          </div>
+        ) : action === undefined ? (
+          <div className="action-selection">
+            <p><strong>Choose among given services :</strong></p>
+            <button className="btn" onClick={() => setAction("deposit")}>Deposit</button>
+            <button className="btn" onClick={() => setAction("withdraw")}>Withdraw</button>
+          </div>
+        ) : action === "deposit" ? (
+          <div>
+            <button className="btn" onClick={depositOneEth}>Deposit 1 ETH</button>
+            <button className="btn" onClick={depositTwoEth}>Deposit 2 ETH</button>
+            <br /><br />
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(parseFloat(e.target.value))}
+              placeholder="Enter amount in ETH"
+            />
+            <button className="btn" onClick={deposit}>Deposit</button>
+            <br></br><br /><button className="btn" onClick={() => setAction(undefined)}>Back</button>
+          </div>
+        ) : (
+          <div>
+            <button className="btn" onClick={withdrawOneEth}>Withdraw 1 ETH</button>
+            <button className="btn" onClick={withdrawTwoEth}>Withdraw 2 ETH</button>
+            <br /><br />
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(parseFloat(e.target.value))}
+              placeholder="Enter amount in ETH"
+            />
+            <button className="btn" onClick={withdraw}>Withdraw</button>
+            <br/><br/><button className="btn" onClick={() => setAction(undefined)}>Back</button>
+          </div>
+        )}
       </div>
     );
   };
@@ -134,21 +206,72 @@ export default function HomePage() {
 
   return (
     <main className="container">
-      <header><h1>Digital Decentralized Banking Service</h1></header>
-      {initUser()}
+      <header className="header">
+        <h1>Digital Decentralized Currency Exchange</h1>
+      </header>
+      <div className="content">
+        {initUser()}
+      </div>
       <style jsx>{`
         .container {
           text-align: center;
-          background-color: #BF4E70; /* Change this to your preferred background color */
+          background-color: #B5F3A3;
           min-height: 100vh;
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
-          position: relative; /* Ensure relative positioning for absolute children */
+          position: relative;
+        }
+        .header {
+          border: 4px double #fff;
+          padding: 20px;
+          margin-bottom: 20px;
+          font-family: 'Bodoni MT', sans-serif;
+        }
+        .content {
+          border: 4px double #000;
+          padding: 20px;
+        }
+        .account-connection {
+          border: 2px solid #000;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+        .action-selection {
+          border: 2px solid #000;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+          .verification-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+        .verification-input {
+  width: 100%;
+}
+        .btn {
+          background-color: #4CAF50;
+          border: none;
+          color: white;
+          padding: 15px 32px;
+          text-align: center;
+          text-decoration: underline;
+          display: inline-block;
+          font-size: 16px;
+          margin: 100px;
+          gap: 10px;
+          transition-duration: 0.4s;
+          cursor: pointer;
+        }
+        .btn:hover {
+          background-color: white;
+          color: black;
+          border: 2px solid #4CAF50;
         }
       `}
       </style>
     </main>
   );
-}
+                }
