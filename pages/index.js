@@ -13,7 +13,7 @@ export default function HomePage() {
   const [verificationError, setVerificationError] = useState('');
   const [isVerified, setIsVerified] = useState(false);
 
-  const contractAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const atmABI = atm_abi.abi;
 
   const getWallet = async () => {
