@@ -14,6 +14,9 @@ export default function HomePage() {
   const [isVerified, setIsVerified] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryStatus, setDeliveryStatus] = useState('');
+  const [productPrice, setProductPrice] = useState(0);
+  const [purchaseAddress, setPurchaseAddress] = useState('');
+
 
 
   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
@@ -134,22 +137,26 @@ export default function HomePage() {
     }
   };
 
-  const buyProduct = async (productPrice) => {
-    if (atm) {
-      try {
-        const tx = await atm.buyProduct({ 
-          value: ethers.utils.parseEther(productPrice.toString()), 
-          gasLimit: ethers.utils.hexlify(300000) // Set appropriate gas limit
-        });
-        await tx.wait();
-        alert(`Product purchased for ${productPrice} ETH!`);
-        getBalance();
-      } catch (error) {
-        console.error("Purchase failed:", error);
-        alert("Purchase failed. Please try again.");
-      }
+  const buyProduct = async () => {
+  if (atm && productPrice > 0 && purchaseAddress) {
+    try {
+      const tx = await atm.buyProduct(purchaseAddress, { 
+        value: ethers.utils.parseEther(productPrice.toString()), 
+        gasLimit: ethers.utils.hexlify(300000)
+      });
+      await tx.wait();
+      alert(`Product purchased for ${productPrice} ETH and will be delivered to ${purchaseAddress}!`);
+      getBalance();
+      setPurchaseAddress('');
+      setProductPrice(0);
+    } catch (error) {
+      console.error("Purchase failed:", error);
+      alert("Purchase failed. Please try again.");
     }
-  };
+  } else {
+    alert("Please enter a valid product price and delivery address.");
+  }
+};
 
 
   const ensureDelivery = async () => {
