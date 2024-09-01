@@ -12,6 +12,9 @@ export default function HomePage() {
   const [verificationInput, setVerificationInput] = useState('');
   const [verificationError, setVerificationError] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryStatus, setDeliveryStatus] = useState('');
+
 
   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const atmABI = atm_abi.abi;
@@ -147,6 +150,25 @@ export default function HomePage() {
       }
     }
   };
+
+
+  const ensureDelivery = async () => {
+    if (atm && deliveryAddress) {
+      try {
+        // Simulating a delivery confirmation on the blockchain
+        const tx = await atm.confirmDelivery(deliveryAddress);
+        await tx.wait();
+        setDeliveryStatus(`Delivery confirmed for address: ${deliveryAddress}`);
+        alert("Delivery has been confirmed and recorded on the blockchain!");
+      } catch (error) {
+        console.error("Delivery confirmation failed:", error);
+        setDeliveryStatus("Delivery confirmation failed. Please try again.");
+      }
+    } else {
+      setDeliveryStatus("Please enter a valid delivery address.");
+    }
+  };
+
   
 
   const initUser = () => {
